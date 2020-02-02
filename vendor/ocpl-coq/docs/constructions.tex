@@ -1,0 +1,387 @@
+\section{OFE and COFE constructions}
+
+\subsection{Trivial pointwise lifting}
+
+The (C)OFE structure on many types can be easily obtained by pointwise lifting of the structure of the components.
+This is what we do for option $\maybe\cofe$, product $(M_i)_{i \in I}$ (with $I$ some finite index set), sum $\cofe + \cofe'$ and finite partial functions $K \fpfn \monoid$ (with $K$ infinite countable).
+
+\subsection{Next (type-level later)}
+
+Given a OFE $\cofe$, we define $\latert\cofe$ as follows (using a datatype-like notation to define the type):
+\begin{align*}
+  \latert\cofe \eqdef{}& \latertinj(x:\cofe) \\
+  \latertinj(x) \nequiv{n} \latertinj(y) \eqdef{}& n = 0 \lor x \nequiv{n-1} y
+\end{align*}
+Note that in the definition of the carrier $\latert\cofe$, $\latertinj$ is a constructor (like the constructors in Coq), \ie this is short for $\setComp{\latertinj(x)}{x \in \cofe}$.
+
+$\latert(-)$ is a locally \emph{contractive} functor from $\OFEs$ to $\OFEs$.
+
+
+\subsection{Uniform Predicates}
+
+Given a CMRA $\monoid$, we define the COFE $\UPred(\monoid)$ of \emph{uniform predicates} over $\monoid$ as follows:
+\begin{align*}
+  \UPred(\monoid) \eqdef{} \setComp{\pred: \nat \times \monoid \to \mProp}{
+  \begin{inbox}[c]
+    (\All n, x, y. \pred(n, x) \land x \nequiv{n} y \Ra \pred(n, y)) \land {}\\
+    (\All n, m, x, y. \pred(n, x) \land x \mincl y \land m \leq n \land y \in \mval_m \Ra \pred(m, y))
+  \end{inbox}
+}
+\end{align*}
+where $\mProp$ is the set of meta-level propositions, \eg Coq's \texttt{Prop}.
+$\UPred(-)$ is a locally non-expansive functor from $\CMRAs$ to $\COFEs$.
+
+One way to understand this definition is to re-write it a little.
+We start by defining the COFE of \emph{step-indexed propositions}: For every step-index, the proposition either holds or does not hold.
+\begin{align*}
+  \SProp \eqdef{}& \psetdown{\nat} \\
+    \eqdef{}& \setComp{X \in \pset{\nat}}{ \All n, m. n \geq m \Ra n \in X \Ra m \in X } \\
+  X \nequiv{n} Y \eqdef{}& \All m \leq n. m \in X \Lra m \in Y
+\end{align*}
+Notice that this notion of $\SProp$ is already hidden in the validity predicate $\mval_n$ of a CMRA:
+We could equivalently require every CMRA to define $\mval_{-}(-) : \monoid \nfn \SProp$, replacing \ruleref{cmra-valid-ne} and \ruleref{cmra-valid-mono}.
+
+Now we can rewrite $\UPred(\monoid)$ as monotone step-indexed predicates over $\monoid$, where the definition of a ``monotone'' function here is a little funny.
+\begin{align*}
+  \UPred(\monoid) \cong{}& \monoid \monra \SProp \\
+     \eqdef{}& \setComp{\pred: \monoid \nfn \SProp}{\All n, m, x, y. n \in \pred(x) \land x \mincl y \land m \leq n \land y \in \mval_m \Ra m \in \pred(y)}
+\end{align*}
+The reason we chose the first definition is that it is easier to work with in Coq.
+
+\clearpage
+\section{RA and CMRA constructions}
+
+\subsection{Product}
+\label{sec:prodm}
+
+Given a family $(M_i)_{i \in I}$ of CMRAs ($I$ finite), we construct a CMRA for the product $\prod_{i \in I} M_i$ by lifting everything pointwise.
+
+Frame-preserving updates on the $M_i$ lift to the product:
+\begin{mathpar}
+  \inferH{prod-update}
+  {\melt \mupd_{M_i} \meltsB}
+  {\mapinsert i \melt f \mupd \setComp{ \mapinsert i \meltB f}{\meltB \in \meltsB}}
+\end{mathpar}
+
+\subsection{Sum}
+\label{sec:summ}
+
+The \emph{sum CMRA} $\monoid_1 \csumm \monoid_2$ for any CMRAs $\monoid_1$ and $\monoid_2$ is defined as (again, we use a datatype-like notation):
+\begin{align*}
+  \monoid_1 \csumm \monoid_2 \eqdef{}& \cinl(\melt_1:\monoid_1) \mid \cinr(\melt_2:\monoid_2) \mid \mundef \\
+  \mval_n \eqdef{}& \setComp{\cinl(\melt_1)}{\melt_1 \in \mval'_n}
+    \cup \setComp{\cinr(\melt_2)}{\melt_2 \in \mval''_n}  \\
+  \cinl(\melt_1) \mtimes \cinl(\meltB_1) \eqdef{}& \cinl(\melt_1 \mtimes \meltB_1)  \\
+%  \munit \mtimes \ospending \eqdef{}& \ospending \mtimes \munit \eqdef \ospending \\
+%  \munit \mtimes \osshot(\melt) \eqdef{}& \osshot(\melt) \mtimes \munit \eqdef \osshot(\melt) \\
+  \mcore{\cinl(\melt_1)} \eqdef{}& \begin{cases}\mnocore & \text{if $\mcore{\melt_1} = \mnocore$} \\ \cinl({\mcore{\melt_1}}) & \text{otherwise} \end{cases}
+\end{align*}
+The composition and core for $\cinr$ are defined symmetrically.
+The remaining cases of the composition and core are all $\mundef$.
+Above, $\mval'$ refers to the validity of $\monoid_1$, and $\mval''$ to the validity of $\monoid_2$.
+
+Notice that we added the artificial ``invalid'' (or ``undefined'') element $\mundef$ to this CMRA just in order to make certain compositions of elements (in this case, $\cinl$ and $\cinr$) invalid.
+
+The step-indexed equivalence is inductively defined as follows:
+\begin{mathpar}
+  \infer{x \nequiv{n} y}{\cinl(x) \nequiv{n} \cinl(y)}
+
+  \infer{x \nequiv{n} y}{\cinr(x) \nequiv{n} \cinr(y)}
+
+  \axiom{\mundef \nequiv{n} \mundef}
+\end{mathpar}
+
+
+We obtain the following frame-preserving updates, as well as their symmetric counterparts:
+\begin{mathpar}
+  \inferH{sum-update}
+  {\melt \mupd_{M_1} \meltsB}
+  {\cinl(\melt) \mupd \setComp{ \cinl(\meltB)}{\meltB \in \meltsB}}
+
+  \inferH{sum-swap}
+  {\All \melt_\f, n. \melt \mtimes \melt_\f \notin \mval'_n \and \meltB \in \mval''}
+  {\cinl(\melt) \mupd \cinr(\meltB)}
+\end{mathpar}
+Crucially, the second rule allows us to \emph{swap} the ``side'' of the sum that the CMRA is on if $\mval$ has \emph{no possible frame}.
+
+\subsection{Option}
+
+The definition of the (CM)RA axioms already lifted the composition operation on $\monoid$ to one on $\maybe\monoid$.
+We can easily extend this to a full CMRA by defining a suitable core, namely
+\begin{align*}
+  \mcore{\mnocore} \eqdef{}& \mnocore & \\
+  \mcore{\maybe\melt} \eqdef{}& \mcore\melt & \text{If $\maybe\melt \neq \mnocore$}
+\end{align*}
+Notice that this core is total, as the result always lies in $\maybe\monoid$ (rather than in $\maybe{\mathord{\maybe\monoid}}$).
+
+\subsection{Finite partial function}
+\label{sec:fpfnm}
+
+Given some infinite countable $K$ and some CMRA $\monoid$, the set of finite partial functions $K \fpfn \monoid$ is equipped with a CMRA structure by lifting everything pointwise.
+
+We obtain the following frame-preserving updates:
+\begin{mathpar}
+  \inferH{fpfn-alloc-strong}
+  {\text{$G$ infinite} \and \melt \in \mval}
+  {\emptyset \mupd \setComp{\mapsingleton \gname \melt}{\gname \in G}}
+
+  \inferH{fpfn-alloc}
+  {\melt \in \mval}
+  {\emptyset \mupd \setComp{\mapsingleton \gname \melt}{\gname \in K}}
+
+  \inferH{fpfn-update}
+  {\melt \mupd_\monoid \meltsB}
+  {\mapinsert i \melt f] \mupd \setComp{ \mapinsert i \meltB f}{\meltB \in \meltsB}}
+\end{mathpar}
+Above, $\mval$ refers to the validity of $\monoid$.
+
+$K \fpfn (-)$ is a locally non-expansive functor from $\CMRAs$ to $\CMRAs$.
+
+\subsection{Agreement}
+
+Given some OFE $\cofe$, we define the CMRA $\agm(\cofe)$ as follows:
+\begin{align*}
+  \agm(\cofe) \eqdef{}& \setComp{\melt \in \finpset\cofe}{c \neq \emptyset} /\ {\sim} \\[-0.2em]
+  \melt \nequiv{n} \meltB \eqdef{}& (\All x \in \melt. \Exists y \in \meltB. x \nequiv{n} y) \land (\All y \in \meltB. \Exists x \in \melt. x \nequiv{n} y) \\
+  \textnormal{where }& \melt \sim \meltB \eqdef{} \All n. \melt \nequiv{n} \meltB  \\
+~\\
+%    \All n \in {\melt.V}.\, \melt.x \nequiv{n} \meltB.x \\
+  \mval_n \eqdef{}& \setComp{\melt \in \agm(\cofe)}{ \All x, y \in \melt. x \nequiv{n} y } \\
+  \mcore\melt \eqdef{}& \melt \\
+  \melt \mtimes \meltB \eqdef{}& \melt \cup \meltB
+\end{align*}
+%Note that the carrier $\agm(\cofe)$ is a \emph{record} consisting of the two fields $c$ and $V$.
+
+$\agm(-)$ is a locally non-expansive functor from $\OFEs$ to $\CMRAs$.
+
+We define a non-expansive injection $\aginj$ into $\agm(\cofe)$ as follows:
+\[ \aginj(x) \eqdef \set{x} \]
+There are no interesting frame-preserving updates for $\agm(\cofe)$, but we can show the following:
+\begin{mathpar}
+  \axiomH{ag-val}{\aginj(x) \in \mval_n}
+
+  \axiomH{ag-dup}{\aginj(x) = \aginj(x)\mtimes\aginj(x)}
+  
+  \axiomH{ag-agree}{\aginj(x) \mtimes \aginj(y) \in \mval_n \Lra x \nequiv{n} y}
+\end{mathpar}
+
+
+\subsection{Exclusive CMRA}
+
+Given an OFE $\cofe$, we define a CMRA $\exm(\cofe)$ such that at most one $x \in \cofe$ can be owned:
+\begin{align*}
+  \exm(\cofe) \eqdef{}& \exinj(\cofe) \mid \mundef \\
+  \mval_n \eqdef{}& \setComp{\melt\in\exm(\cofe)}{\melt \neq \mundef}
+\end{align*}
+All cases of composition go to $\mundef$.
+\begin{align*}
+  \mcore{\exinj(x)} \eqdef{}& \mnocore &
+  \mcore{\mundef} \eqdef{}& \mundef
+\end{align*}
+Remember that $\mnocore$ is the ``dummy'' element in $\maybe\monoid$ indicating (in this case) that $\exinj(x)$ has no core.
+
+The step-indexed equivalence is inductively defined as follows:
+\begin{mathpar}
+  \infer{x \nequiv{n} y}{\exinj(x) \nequiv{n} \exinj(y)}
+
+  \axiom{\mundef \nequiv{n} \mundef}
+\end{mathpar}
+$\exm(-)$ is a locally non-expansive functor from $\OFEs$ to $\CMRAs$.
+
+We obtain the following frame-preserving update:
+\begin{mathpar}
+  \inferH{ex-update}{}
+  {\exinj(x) \mupd \exinj(y)}
+\end{mathpar}
+
+
+
+%TODO: These need syncing with Coq
+% \subsection{Finite Powerset Monoid}
+
+% Given an infinite set $X$, we define a monoid $\textmon{PowFin}$ with carrier $\mathcal{P}^{\textrm{fin}}(X)$ as follows:
+% \[
+% \melt \cdot \meltB \;\eqdef\; \melt \cup \meltB \quad \mbox{if } \melt \cap \meltB = \emptyset
+% \]
+
+% We obtain:
+% \begin{mathpar}
+% 	\inferH{PowFinUpd}{}
+% 		{\emptyset \mupd \{ \{x\} \mid x \in X  \}}
+% \end{mathpar}
+
+% \begin{proof}[Proof of \ruleref{PowFinUpd}]
+% 	Assume some frame $\melt_\f \sep \emptyset$. Since $\melt_\f$ is finite and $X$ is infinite, there exists an $x \notin \melt_\f$.
+% 	Pick that for the result.
+% \end{proof}
+
+% The powerset monoids is cancellative.
+% \begin{proof}[Proof of cancellativity]
+% 	Let $\melt_\f \mtimes \melt = \melt_\f \mtimes \meltB \neq \mzero$.
+% 	So we have $\melt_\f \sep \melt$ and $\melt_\f \sep \meltB$, and we have to show $\melt = \meltB$.
+% 	Assume $x \in \melt$. Hence $x \in \melt_\f \mtimes \melt$ and thus $x \in \melt_\f \mtimes \meltB$.
+% 	By disjointness, $x \notin \melt_\f$ and hence $x \in meltB$.
+% 	The other direction works the same way.
+% \end{proof}
+
+
+% \subsection{Fractional monoid}
+% \label{sec:fracm}
+
+% Given a monoid $M$, we define a monoid representing fractional ownership of some piece $\melt \in M$.
+% The idea is to preserve all the frame-preserving update that $M$ could have, while additionally being able to do \emph{any} update if we own the full state (as determined by the fraction being $1$).
+% Let $\fracm{M}$ be the monoid with carrier $(((0, 1] \cap \mathbb{Q}) \times M) \uplus \{\munit\}$ and multiplication
+% \begin{align*}
+%  (q, a) \mtimes (q', a') &\eqdef (q + q', a \mtimes a') \qquad \mbox{if $q+q'\le 1$} \\
+%  (q, a) \mtimes \munit &\eqdef (q,a) \\
+%  \munit \mtimes (q,a) &\eqdef (q,a).
+% \end{align*}
+
+% We get the following frame-preserving update.
+% \begin{mathpar}
+% 	\inferH{FracUpdFull}
+% 		{a, b \in M}
+% 		{(1, a) \mupd (1, b)}
+%   \and\inferH{FracUpdLocal}
+% 	  {a \mupd_M B}
+% 	  {(q, a) \mupd \{q\} \times B}
+% \end{mathpar}
+
+% \begin{proof}[Proof of \ruleref{FracUpdFull}]
+% Assume some $f \sep (1, a)$. This can only be $f = \munit$, so showing $f \sep (1, b)$ is trivial.
+% \end{proof}
+
+% \begin{proof}[Proof of \ruleref{FracUpdLocal}]
+% 	Assume some $f \sep (q, a)$. If $f = \munit$, then $f \sep (q, b)$ is trivial for any $b \in B$. Just pick the one we obtain by choosing $\munit_M$ as the frame for $a$.
+	
+% 	In the interesting case, we have $f = (q_\f, a_\f)$.
+% 	Obtain $b$ such that $b \in B \land b \sep a_\f$.
+% 	Then $(q, b) \sep f$, and we are done.
+% \end{proof}
+
+% $\fracm{M}$ is cancellative if $M$ is cancellative.
+% \begin{proof}[Proof of cancellativitiy]
+% If $\melt_\f = \munit$, we are trivially done.
+% So let $\melt_\f = (q_\f, \melt_\f')$.
+% If $\melt = \munit$, then $\meltB = \munit$ as otherwise the fractions could not match up.
+% Again, we are trivially done.
+% Similar so for $\meltB = \munit$.
+% So let $\melt = (q_a, \melt')$ and $\meltB = (q_b, \meltB')$.
+% We have $(q_\f + q_a, \melt_\f' \mtimes \melt') = (q_\f + q_b, \melt_\f' \mtimes \meltB')$.
+% We have to show $q_a = q_b$ and $\melt' = \meltB'$.
+% The first is trivial, the second follows from cancellativitiy of $M$.
+% \end{proof}
+
+
+\subsection{Authoritative}
+\label{sec:auth-cmra}
+
+Given a CMRA $M$, we construct $\authm(M)$ modeling someone owning an \emph{authoritative} element $\melt$ of $M$, and others potentially owning fragments $\meltB \mincl \melt$ of $\melt$.
+We assume that $M$ has a unit $\munit$, and hence its core is total.
+(If $M$ is an exclusive monoid, the construction is very similar to a half-ownership monoid with two asymmetric halves.)
+\begin{align*}
+\authm(M) \eqdef{}& \maybe{\exm(M)} \times M \\
+\mval_n \eqdef{}& \setComp{ (x, \meltB) \in \authm(M) }{ \meltB \in \mval_n \land (x = \mnocore \lor \Exists \melt. x = \exinj(\melt) \land \meltB \mincl_n \melt) } \\
+  (x_1, \meltB_1) \mtimes (x_2, \meltB_2) \eqdef{}& (x_1 \mtimes x_2, \meltB_2 \mtimes \meltB_2) \\
+  \mcore{(x, \meltB)} \eqdef{}& (\mnocore, \mcore\meltB) \\
+  (x_1, \meltB_1) \nequiv{n} (x_2, \meltB_2) \eqdef{}& x_1 \nequiv{n} x_2 \land \meltB_1 \nequiv{n} \meltB_2
+\end{align*}
+Note that $(\mnocore, \munit)$ is the unit and asserts no ownership whatsoever, but $(\exinj(\munit), \munit)$ asserts that the authoritative element is $\munit$.
+
+Let $\melt, \meltB \in M$.
+We write $\authfull \melt$ for full ownership $(\exinj(\melt), \munit)$ and $\authfrag \meltB$ for fragmental ownership $(\mnocore, \meltB)$ and $\authfull \melt , \authfrag \meltB$ for combined ownership $(\exinj(\melt), \meltB)$.
+
+The frame-preserving update involves the notion of a \emph{local update}:
+\newcommand\lupd{\stackrel{\mathrm l}{\mupd}}
+\begin{defn}
+  It is possible to do a \emph{local update} from $\melt_1$ and $\meltB_1$ to $\melt_2$ and $\meltB_2$, written $(\melt_1, \meltB_1) \lupd (\melt_2, \meltB_2)$, if
+  \[ \All n, \maybe{\melt_\f}. \melt_1 \in \mval_n \land \melt_1 \nequiv{n} \meltB_1 \mtimes \maybe{\melt_\f} \Ra \melt_2 \in \mval_n \land \melt_2 \nequiv{n} \meltB_2 \mtimes \maybe{\melt_\f} \]
+\end{defn}
+In other words, the idea is that for every possible frame $\maybe{\melt_\f}$ completing $\meltB_1$ to $\melt_1$, the same frame also completes $\meltB_2$ to $\melt_2$.
+
+We then obtain
+\begin{mathpar}
+  \inferH{auth-update}
+  {(\melt_1, \meltB_1) \lupd (\melt_2, \meltB_2)}
+  {\authfull \melt_1 , \authfrag \meltB_1 \mupd \authfull \melt_2 , \authfrag \meltB_2}
+\end{mathpar}
+
+\subsection{STS with tokens}
+\label{sec:sts-cmra}
+
+Given a state-transition system~(STS, \ie a directed graph) $(\STSS, {\stsstep} \subseteq \STSS \times \STSS)$, a set of tokens $\STST$, and a labeling $\STSL: \STSS \ra \wp(\STST)$ of \emph{protocol-owned} tokens for each state, we construct an RA modeling an authoritative current state and permitting transitions given a \emph{bound} on the current state and a set of \emph{locally-owned} tokens.
+
+The construction follows the idea of STSs as described in CaReSL \cite{caresl}.
+We first lift the transition relation to $\STSS \times \wp(\STST)$ (implementing a \emph{law of token conservation}) and define a stepping relation for the \emph{frame} of a given token set:
+\begin{align*}
+ (s, T) \stsstep (s', T') \eqdef{}& s \stsstep s' \land \STSL(s) \uplus T = \STSL(s') \uplus T' \\
+ s \stsfstep{T} s' \eqdef{}& \Exists T_1, T_2. T_1 \disj \STSL(s) \cup T \land (s, T_1) \stsstep (s', T_2)
+\end{align*}
+
+We further define \emph{closed} sets of states (given a particular set of tokens) as well as the \emph{closure} of a set:
+\begin{align*}
+\STSclsd(S, T) \eqdef{}& \All s \in S. \STSL(s) \disj T \land \left(\All s'. s \stsfstep{T} s' \Ra s' \in S\right) \\
+\upclose(S, T) \eqdef{}& \setComp{ s' \in \STSS}{\Exists s \in S. s \stsftrans{T} s' }
+\end{align*}
+
+The STS RA is defined as follows
+\begin{align*}
+  \monoid \eqdef{}& \STSauth(s:\STSS, T:\wp(\STST) \mid \STSL(s) \disj T) \mid{}\\& \STSfrag(S: \wp(\STSS), T: \wp(\STST) \mid \STSclsd(S, T) \land S \neq \emptyset) \mid \mundef \\
+  \mval \eqdef{}& \setComp{\melt\in\monoid}{\melt \neq \mundef} \\
+  \STSfrag(S_1, T_1) \mtimes \STSfrag(S_2, T_2) \eqdef{}& \STSfrag(S_1 \cap S_2, T_1 \cup T_2) \qquad\qquad\qquad \text{if $T_1 \disj T_2$ and $S_1 \cap S_2 \neq \emptyset$} \\
+  \STSfrag(S, T) \mtimes \STSauth(s, T') \eqdef{}& \STSauth(s, T') \mtimes \STSfrag(S, T) \eqdef \STSauth(s, T \cup T') \qquad \text{if $T \disj T'$ and $s \in S$} \\
+  \mcore{\STSfrag(S, T)} \eqdef{}& \STSfrag(\upclose(S, \emptyset), \emptyset) \\
+  \mcore{\STSauth(s, T)} \eqdef{}& \STSfrag(\upclose(\set{s}, \emptyset), \emptyset)
+\end{align*}
+The remaining cases are all $\mundef$.
+
+We will need the following frame-preserving update:
+\begin{mathpar}
+  \inferH{sts-step}{(s, T) \ststrans (s', T')}
+  {\STSauth(s, T) \mupd \STSauth(s', T')}
+
+  \inferH{sts-weaken}
+  {\STSclsd(S_2, T_2) \and S_1 \subseteq S_2 \and T_2 \subseteq T_1}
+  {\STSfrag(S_1, T_1) \mupd \STSfrag(S_2, T_2)}
+\end{mathpar}
+
+\paragraph{The core is not a homomorphism.}
+The core of the STS construction is only satisfying the RA axioms because we are \emph{not} demanding the core to be a homomorphism---all we demand is for the core to be monotone with respect the \ruleref{ra-incl}.
+
+In other words, the following does \emph{not} hold for the STS core as defined above:
+\[ \mcore\melt \mtimes \mcore\meltB = \mcore{\melt\mtimes\meltB} \]
+
+To see why, consider the following STS:
+\newcommand\st{\textlog{s}}
+\newcommand\tok{\textmon{t}}
+\begin{center}
+  \begin{tikzpicture}[sts]
+    \node at (0,0)   (s1) {$\st_1$};
+    \node at (3,0)  (s2) {$\st_2$};
+    \node at (9,0) (s3) {$\st_3$};
+    \node at (6,0)  (s4) {$\st_4$\\$[\tok_1, \tok_2]$};
+    
+    \path[sts_arrows] (s2) edge  (s4);
+    \path[sts_arrows] (s3) edge  (s4);
+  \end{tikzpicture}
+\end{center}
+Now consider the following two elements of the STS RA:
+\[ \melt \eqdef \STSfrag(\set{\st_1,\st_2}, \set{\tok_1}) \qquad\qquad
+  \meltB \eqdef \STSfrag(\set{\st_1,\st_3}, \set{\tok_2}) \]
+
+We have:
+\begin{mathpar}
+  {\melt\mtimes\meltB = \STSfrag(\set{\st_1}, \set{\tok_1, \tok_2})}
+
+  {\mcore\melt = \STSfrag(\set{\st_1, \st_2, \st_4}, \emptyset)}
+
+  {\mcore\meltB = \STSfrag(\set{\st_1, \st_3, \st_4}, \emptyset)}
+
+  {\mcore\melt \mtimes \mcore\meltB = \STSfrag(\set{\st_1, \st_4}, \emptyset) \neq
+    \mcore{\melt \mtimes \meltB} = \STSfrag(\set{\st_1}, \emptyset)}
+\end{mathpar}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "iris"
+%%% End: 

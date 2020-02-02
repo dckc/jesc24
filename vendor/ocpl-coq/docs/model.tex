@@ -1,0 +1,123 @@
+\section{Model and semantics}
+\label{sec:model}
+
+The semantics closely follows the ideas laid out in~\cite{catlogic}.
+
+\paragraph{Semantic domains.}
+
+The semantic  domains are interpreted as follows:
+\[
+\begin{array}[t]{@{}l@{\ }c@{\ }l@{}}
+\Sem{\textlog{\Prop}} &\eqdef& \UPred(\monoid)  \\
+\Sem{\textlog{M}} &\eqdef& \monoid
+\end{array}
+\qquad\qquad
+\begin{array}[t]{@{}l@{\ }c@{\ }l@{}}
+\Sem{1} &\eqdef& \Delta \{ () \} \\
+\Sem{\type \times \type'} &\eqdef& \Sem{\type} \times \Sem{\type} \\
+\Sem{\type \to \type'} &\eqdef& \Sem{\type} \nfn \Sem{\type} \\
+\end{array}
+\]
+For the remaining base types $\type$ defined by the signature $\Sig$, we pick an object $X_\type$ in $\OFEs$ and define
+\[
+\Sem{\type} \eqdef X_\type
+\]
+For each function symbol $\sigfn : \type_1, \dots, \type_n \to \type_{n+1} \in \SigFn$, we pick a function $\Sem{\sigfn} : \Sem{\type_1} \times \dots \times \Sem{\type_n} \nfn \Sem{\type_{n+1}}$.
+
+\judgment[Interpretation of assertions.]{\Sem{\vctx \proves \term : \Prop} : \Sem{\vctx} \nfn \UPred(\monoid)}
+
+Remember that $\UPred(\monoid)$ is isomorphic to $\monoid \monra \SProp$.
+We are thus going to define the assertions as mapping CMRA elements to sets of step-indices.
+
+\begin{align*}
+	\Sem{\vctx \proves t =_\type u : \Prop}_\gamma &\eqdef
+	\Lam \any. \setComp{n}{\Sem{\vctx \proves t : \type}_\gamma \nequiv{n} \Sem{\vctx \proves u : \type}_\gamma} \\
+	\Sem{\vctx \proves \FALSE : \Prop}_\gamma &\eqdef \Lam \any. \emptyset \\
+	\Sem{\vctx \proves \TRUE : \Prop}_\gamma &\eqdef \Lam \any. \nat \\
+	\Sem{\vctx \proves \prop \land \propB : \Prop}_\gamma &\eqdef
+	\Lam \melt. \Sem{\vctx \proves \prop : \Prop}_\gamma(\melt) \cap \Sem{\vctx \proves \propB : \Prop}_\gamma(\melt) \\
+	\Sem{\vctx \proves \prop \lor \propB : \Prop}_\gamma &\eqdef
+	\Lam \melt. \Sem{\vctx \proves \prop : \Prop}_\gamma(\melt) \cup \Sem{\vctx \proves \propB : \Prop}_\gamma(\melt) \\
+	\Sem{\vctx \proves \prop \Ra \propB : \Prop}_\gamma &\eqdef
+	\Lam \melt. \setComp{n}{\begin{aligned}
+            \All m, \meltB.& m \leq n \land \melt \mincl \meltB \land \meltB \in \mval_m \Ra {} \\
+            & m \in \Sem{\vctx \proves \prop : \Prop}_\gamma(\meltB) \Ra {}\\& m \in \Sem{\vctx \proves \propB : \Prop}_\gamma(\meltB)\end{aligned}}\\
+	\Sem{\vctx \proves \All \var : \type. \prop : \Prop}_\gamma &\eqdef
+	\Lam \melt. \setComp{n}{ \All v \in \Sem{\type}. n \in \Sem{\vctx, \var : \type \proves \prop : \Prop}_{\mapinsert \var v \gamma}(\melt) } \\
+	\Sem{\vctx \proves \Exists \var : \type. \prop : \Prop}_\gamma &\eqdef
+        \Lam \melt. \setComp{n}{ \Exists v \in \Sem{\type}. n \in \Sem{\vctx, \var : \type \proves \prop : \Prop}_{\mapinsert \var v \gamma}(\melt) }
+\end{align*}
+\begin{align*}
+	\Sem{\vctx \proves \prop * \propB : \Prop}_\gamma &\eqdef \Lam\melt. \setComp{n}{\begin{aligned}\Exists \meltB_1, \meltB_2. &\melt \nequiv{n} \meltB_1 \mtimes \meltB_2 \land {}\\& n \in \Sem{\vctx \proves \prop : \Prop}_\gamma(\meltB_1) \land n \in \Sem{\vctx \proves \propB : \Prop}_\gamma(\meltB_2)\end{aligned}}
+\\
+	\Sem{\vctx \proves \prop \wand \propB : \Prop}_\gamma &\eqdef
+	\Lam \melt. \setComp{n}{\begin{aligned}
+            \All m, \meltB.& m \leq n \land  \melt\mtimes\meltB \in \mval_m \Ra {} \\
+            & m \in \Sem{\vctx \proves \prop : \Prop}_\gamma(\meltB) \Ra {}\\& m \in \Sem{\vctx \proves \propB : \Prop}_\gamma(\melt\mtimes\meltB)\end{aligned}} \\
+	\Sem{\vctx \proves \always{\prop} : \Prop}_\gamma &\eqdef \Lam\melt. \Sem{\vctx \proves \prop : \Prop}_\gamma(\mcore\melt) \\
+	\Sem{\vctx \proves \later{\prop} : \Prop}_\gamma &\eqdef \Lam\melt. \setComp{n}{n = 0 \lor n-1 \in \Sem{\vctx \proves \prop : \Prop}_\gamma(\melt)}\\
+        \Sem{\vctx \proves \ownM{\melt} : \Prop}_\gamma &\eqdef \Lam\meltB. \setComp{n}{\Sem{\vctx \proves \melt : \textlog{M}}_\gamma \mincl[n] \meltB}  \\
+        \Sem{\vctx \proves \mval(\melt) : \Prop}_\gamma &\eqdef \Lam\any. \setComp{n}{\Sem{\vctx \proves \melt : \type}_\gamma \in \mval_n} \\
+        \Sem{\vctx \proves \upd\prop : \Prop}_\gamma &\eqdef \Lam\melt. \setComp{n}{\begin{aligned}
+            \All m, \melt'. & m \leq n \land (\melt \mtimes \melt') \in \mval_m \Ra {}\\& \Exists \meltB. (\meltB \mtimes \melt') \in \mval_m \land m \in \Sem{\vctx \proves \prop :\Prop}_\gamma(\meltB)
+          \end{aligned}
+}
+\end{align*}
+
+For every definition, we have to show all the side-conditions: The maps have to be non-expansive and monotone.
+
+
+
+\judgment[Interpretation of non-propositional terms]{\Sem{\vctx \proves \term : \type} : \Sem{\vctx} \nfn \Sem{\type}}
+\begin{align*}
+	\Sem{\vctx \proves x : \type}_\gamma &\eqdef \gamma(x) \\
+	\Sem{\vctx \proves \sigfn(\term_1, \dots, \term_n) : \type_{n+1}}_\gamma &\eqdef \Sem{\sigfn}(\Sem{\vctx \proves \term_1 : \type_1}_\gamma, \dots, \Sem{\vctx \proves \term_n : \type_n}_\gamma) \\
+	\Sem{\vctx \proves \Lam \var:\type. \term : \type \to \type'}_\gamma &\eqdef
+	\Lam \termB : \Sem{\type}. \Sem{\vctx, \var : \type \proves \term : \type}_{\mapinsert \var \termB \gamma]} \\
+	\Sem{\vctx \proves \term(\termB) : \type'}_\gamma &\eqdef
+	\Sem{\vctx \proves \term : \type \to \type'}_\gamma(\Sem{\vctx \proves \termB : \type}_\gamma) \\
+	\Sem{\vctx \proves \MU \var:\type. \term : \type}_\gamma &\eqdef
+	\mathit{fix}(\Lam \termB : \Sem{\type}. \Sem{\vctx, x : \type \proves \term : \type}_{\mapinsert \var \termB \gamma}) \\
+  ~\\
+	\Sem{\vctx \proves () : 1}_\gamma &\eqdef () \\
+	\Sem{\vctx \proves (\term_1, \term_2) : \type_1 \times \type_2}_\gamma &\eqdef (\Sem{\vctx \proves \term_1 : \type_1}_\gamma, \Sem{\vctx \proves \term_2 : \type_2}_\gamma) \\
+	\Sem{\vctx \proves \pi_i(\term) : \type_i}_\gamma &\eqdef \pi_i(\Sem{\vctx \proves \term : \type_1 \times \type_2}_\gamma) \\
+  ~\\
+	\Sem{\vctx \proves \mcore\melt : \textlog{M}}_\gamma &\eqdef \mcore{\Sem{\vctx \proves \melt : \textlog{M}}_\gamma} \\
+	\Sem{\vctx \proves \melt \mtimes \meltB : \textlog{M}}_\gamma &\eqdef
+	\Sem{\vctx \proves \melt : \textlog{M}}_\gamma \mtimes \Sem{\vctx \proves \meltB : \textlog{M}}_\gamma
+\end{align*}
+%
+
+An environment $\vctx$ is interpreted as the set of
+finite partial functions $\rho$, with $\dom(\rho) = \dom(\vctx)$ and
+$\rho(x)\in\Sem{\vctx(x)}$.
+
+\paragraph{Logical entailment.}
+We can now define \emph{semantic} logical entailment.
+
+\typedsection{Interpretation of entailment}{\Sem{\vctx \mid \pfctx \proves \prop} : \mProp}
+
+\[
+\Sem{\vctx \mid \prop \proves \propB} \eqdef
+\begin{aligned}[t]
+\MoveEqLeft
+\forall n \in \nat.\;
+\forall \rs \in \textdom{Res}.\; 
+\forall \gamma \in \Sem{\vctx},\;
+\\&
+n \in \Sem{\vctx \proves \prop : \Prop}_\gamma(\rs)
+\Ra n \in \Sem{\vctx \proves \propB : \Prop}_\gamma(\rs)
+\end{aligned}
+\]
+
+The following soundness theorem connects syntactic and semantic entailment.
+It is proven by showing that all the syntactic proof rules of \Sref{sec:base-logic} can be validated in the model.
+\[ \vctx \mid \prop \proves \propB \Ra \Sem{\vctx \mid \prop \proves \propB} \]
+
+It now becomes straight-forward to show consistency of the logic.
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "iris"
+%%% End:

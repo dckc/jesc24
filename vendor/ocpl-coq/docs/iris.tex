@@ -1,0 +1,58 @@
+\documentclass[10pt]{article}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+\newif\ifslow\slowfalse %\slowtrue
+\ifslow
+	\usepackage[english]{babel}
+	\usepackage[babel=true]{microtype}
+\fi
+\usepackage{geometry}
+
+\usepackage[backend=biber]{biblatex}
+\bibliography{bib}
+
+\input{setup}
+
+
+\title{\bfseries The Iris 3.0 Documentation}
+\author{\url{http://plv.mpi-sws.org/iris/}}
+
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+\vfill
+\begin{abstract}
+This document describes formally the Iris program logic.
+Every result in this document has been fully verified in Coq.
+The latest versions of this document and the Coq formalization can be found in the git repository at \url{https://gitlab.mpi-sws.org/FP/iris-coq/}.
+For further information, visit the Iris project website at \url{http://plv.mpi-sws.org/iris/}.
+\end{abstract}
+
+\clearpage
+\tableofcontents
+
+\clearpage\begingroup
+\input{algebra}
+\endgroup\clearpage\begingroup
+\input{constructions}
+\endgroup\clearpage\begingroup
+\input{base-logic}
+\endgroup\clearpage\begingroup
+\input{model}
+\endgroup\clearpage\begingroup
+\input{ghost-state}
+\endgroup\clearpage\begingroup
+\input{language}
+\endgroup\clearpage\begingroup
+\input{program-logic}
+\endgroup\clearpage\begingroup
+\input{derived}
+\endgroup\clearpage\begingroup
+\printbibliography
+\endgroup
+
+\end{document}
