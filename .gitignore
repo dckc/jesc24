@@ -1,4 +1,7 @@
+*.vo
+*.glob
 *.cache
+*.aux
 *~
 .coqdeps.d
 Makefile.coq
