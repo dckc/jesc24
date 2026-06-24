@@ -25,4 +25,4 @@ jobs:
         run: nix develop --command true
 
       - name: build
-        run: nix develop --command make
+        run: nix develop --command make -j"$(nproc)"
