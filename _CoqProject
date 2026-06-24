@@ -1,3 +1,4 @@
+-Q theories/jessie jessie
 -Q vendor/ocpl-coq/theories iris
 -arg -w -arg -notation-overridden,-redundant-canonical-projection,-several-object-files
 vendor/ocpl-coq/theories/prelude/option.v
@@ -156,3 +157,7 @@ vendor/peg-coq/theories/Charset.v
 vendor/peg-coq/theories/Syntax.v
 vendor/peg-coq/theories/Suffix.v
 vendor/peg-coq/theories/Match.v
+theories/jessie/jessica_ast.v
+theories/jessie/quasi_json.v
+theories/jessie/quasi_justin.v
+theories/jessie/quasi_jessie.v
