@@ -164,3 +164,4 @@ theories/jessie/quasi_jessie.v
 theories/jessie/makeCounter_js.v
 theories/jessie/jessie_notation.v
 theories/jessie/jessica_to_hla.v
+theories/jessie/make_counter.v
