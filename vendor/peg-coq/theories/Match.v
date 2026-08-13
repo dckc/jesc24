@@ -2,6 +2,7 @@ From Coq Require Import Lists.List.
 From Coq Require Import Strings.Ascii.
 From Coq Require Import Strings.String.
 From Coq Require Import Arith.PeanoNat.
+From Coq Require Import Lia.
 From Peg Require Import Syntax.
 From Peg Require Import Tactics.
 From Peg Require Import Suffix.
@@ -446,9 +447,9 @@ Proof.
     destruct IHmatches2 as [gas2 H2];
     exists (1 + gas1 + gas2);
     simpl;
-    specialize (Nat.le_add_r gas1 gas2) as Hle1;
+    assert (Hle1 : gas1 <= gas1 + gas2) by lia;
     rewrite (matches_comp_gas_some_le _ _ _ _ _ _ H1 Hle1);
-    specialize (Nat.le_add_l gas2 gas1) as Hle2;
+    assert (Hle2 : gas2 <= gas1 + gas2) by lia;
     eauto using matches_comp_gas_some_le
   ).
 Qed.
