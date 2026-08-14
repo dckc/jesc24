@@ -1,5 +1,9 @@
 # Rocq Core: CIC Reduction & Kernel
 
+While it remains essential that we understand the statement of the theorems, we are content with any proof that checks because
+1. The atomic proof steps (reductions) are reasonably clear.
+2. The ~10K LOC of code that checks compositions of them is mature.
+
 ---
 
 ## Proof Checking in Coq Kernel

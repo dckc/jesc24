@@ -10,7 +10,6 @@ the Jessie `makeCounter` example:
 - `checked_counter_from_source_safe` proves robust safety for a source-linked
   client that keeps the lowered `checkedCounter` shape and links its free
   `makeCounter` binding to the proved HeapLang `make_counter` constructor.
-
 That theorem is the current bridge from source-facing Jessie syntax to the OCPL
 robust-safety proof line for the upward-capability counter.
 
@@ -92,17 +91,3 @@ Relevant broader escrow renditions already in-tree:
   surface grammar.
 - `JThrow` needs semantics appropriate for `escrow2013` and promise behavior;
   treating it as simple stuckness would be misleading.
-
-## Build
-
-- Use the same OCPL proof line:
-  `nix develop --command make -j"$(nproc)"`
-- The top-level `Makefile` generates `theories/jessie/*_js.v` and the Menhir
-  parsers (`jesc_parser.v`, `json_parser.v` from the `.vy` grammars) before
-  running `coq_makefile`.
-- `menhir` comes from the `nix develop` shell; the Coq `MenhirLib` library it
-  generates against is the vendored `vendor/menhirlib`, so the parser is
-  regenerated with the same Menhir version (20250903) as the library.
-- `_CoqProject` lists the generated modules directly, so a clean checkout should
-  start from top-level `make`, not from a direct `coq_makefile -f _CoqProject`
-  or single-file `coqc` invocation.

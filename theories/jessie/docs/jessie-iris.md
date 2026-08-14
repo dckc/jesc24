@@ -1,10 +1,12 @@
-# Jessie In Iris
+# Jessie In Iris for Robust Safety
 
-HackMD-style slide notes for the Jessie / OCPL / Iris work in this directory.
+HackMD-style slide notes for this Jessie / OCPL / Iris work.
 
 ---
 
-## The Problem
+## A First Problem
+
+Befor approaching the whole escrow contract, let's start with `makeCounter`:
 
 ```js
 const makeCounter = () => {
@@ -72,9 +74,9 @@ assert(c.incr() > 0);
 - That makes OCPL the right prior starting point for this project.
 
 Reference:
-Swasey, Garg, Dreyer, "Robust and Compositional Verification of Object
-Capability Patterns" (OOPSLA 2017).
-<https://www.mpi-sws.org/~dreyer/papers/ocpl/paper.pdf>
+Swasey, Garg, Dreyer, ["Robust and Compositional Verification of Object Capability Patterns"][2017-ocpl] (OOPSLA 2017).
+
+[2017-ocpl]: https://www.mpi-sws.org/~dreyer/papers/ocpl/paper.pdf
 
 ---
 
@@ -89,8 +91,9 @@ Capability Patterns" (OOPSLA 2017).
 
 Reference:
 Krebbers, Jung, Bizjak, Jourdan, Dreyer, Birkedal,
-"The Essence of Higher-Order Concurrent Separation Logic" (ESOP 2017).
-<https://iris-project.org/pdfs/2017-esop-iris3-final.pdf>
+["The Essence of Higher-Order Concurrent Separation Logic"][2017-iris] (ESOP 2017).
+
+[2017-iris]: https://iris-project.org/pdfs/2017-esop-iris3-final.pdf
 
 ---
 
@@ -236,58 +239,3 @@ _translation* - the translation is currently approximate. We haven't finished pr
 > Speaker notes:
 > This is the reveal. Keep the focus on the security claim and the
 > theorem-bearing Coq artifact.
-
----
-
-## Future Work
-
-- Extend the Jessie fragment beyond the counter example.
-- Add the remaining presentation-level layers, including the hardened /
-  immutable-object story.
-- Reconnect this narrow fragment to the broader Jessica grammar line.
-
-Grammar references:
-- JSON:
-  <https://github.com/agoric-labs/jessica/blob/master/lib/quasi-json.js.ts>
-- Justin:
-  <https://github.com/agoric-labs/jessica/blob/master/lib/quasi-justin.js.ts>
-- Jessie:
-  <https://github.com/agoric-labs/jessica/blob/master/lib/quasi-jessie.js.ts>
-
-Concrete syntax oracle:
-<https://github.com/endojs/Jessie/blob/3ce32c97b6d326db2a1b400827c740336eefa786/packages/blockly-tools/test/test-data.json>
-
----
-
-## Dev Tools
-
-`iris.mk` is the local bootstrap and incremental-build helper.
-
-- toolchain bootstrap: Ubuntu packages, opam switch, Coq, Iris, HeapLang,
-  `vsrocq-language-server`
-- active build manifest comes from `_CoqProject`
-- normal workflow entry point: `make -f iris.mk help`
-- normal incremental build: `make -f iris.mk build SOURCES="..."`
-
-> Speaker notes:
-> The makefile is the operational source of truth. This slide is only the
-> short orientation.
-
----
-
-## Commit Discipline
-
-Use git commit messages as the running lab notebook.
-
-- This file is for the relatively stable argument and status summary.
-- Commit whenever there is a coherent thought worth preserving.
-- That includes:
-  - working increments
-  - clarified invariants
-  - proof decompositions
-  - informative backtracks
-
-The point is to leave proof breadcrumbs in the history rather than turning this
-note into an ever-growing scratchpad.
-
----
