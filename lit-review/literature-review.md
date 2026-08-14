@@ -11,3 +11,9 @@ The essential properties of the [Zoe](https://docs.agoric.com/guides/zoe/) escro
 - [“Capability-Based Financial Instruments.”](2000-capability-financial-instruments.md) 2001. Miller, Mark S., Chip Morningstar, and Bill Frantz. In , edited by Yair Frankel, 1962:349–78. Berlin, Heidelberg: Springer Berlin Heidelberg. https://doi.org/10.1007/3-540-45472-1_24.
 
 _This bibliography is taken from the [escrow](https://www.zotero.org/connolly/tags/escrow/library)  tag in [my zotero library](https://www.zotero.org/connolly/library)_.
+
+## Related work
+
+Nearby but not part of the escrow/object-capability lineage proper:
+
+- [“JavaScript Language Design and Implementation in Tandem.”](2024-javascript-language-tandem.md) 2024. Ryu, Sukyoung, and Jihyeok Park. _Communications of the ACM_ 67 (5): 86–93. https://doi.org/10.1145/3624723.
