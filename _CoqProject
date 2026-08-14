@@ -151,12 +151,6 @@ vendor/ocpl-coq/theories/proofmode/tactics.v
 vendor/ocpl-coq/theories/proofmode/notation.v
 vendor/ocpl-coq/theories/proofmode/classes.v
 vendor/ocpl-coq/theories/proofmode/class_instances.v
--R vendor/peg-coq/theories Peg
-vendor/peg-coq/theories/Tactics.v
-vendor/peg-coq/theories/Charset.v
-vendor/peg-coq/theories/Syntax.v
-vendor/peg-coq/theories/Suffix.v
-vendor/peg-coq/theories/Match.v
 -R vendor/menhirlib MenhirLib
 vendor/menhirlib/Alphabet.v
 vendor/menhirlib/Automaton.v
