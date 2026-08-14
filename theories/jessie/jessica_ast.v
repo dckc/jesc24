@@ -7,7 +7,13 @@ Open Scope Z_scope.
 Module JessicaAst.
   Inductive jpat :=
   | JDef (x : string)
-  | JMatchArray (ps : list jpat).
+  | JMatchArray (ps : list jpat)
+  (* Cover-grammar placeholder: a parenthesized arrow-parameter list whose
+     contents are not valid patterns (e.g. [(1) => {}]).  The parser may
+     produce it while parsing the permissive cover grammar; jesc_parse.v
+     rejects it during the "must cover an ArrowFormalParameters" check that
+     mirrors ECMA-262's early-error rule. *)
+  | JBadPat.
 
   Inductive jimport_bind :=
   | JImportAs (local imported : string).
@@ -28,6 +34,11 @@ Module JessicaAst.
   | JRecord (fields : list jprop)
   | JArrow (params : list jpat) (body : jbody)
   | JLambda (params : list jpat) (body : jbody)
+  (* Cover-grammar placeholder: a parenthesized expression that is not a
+     single expression, e.g. "()" or "(a, b)" used in expression position.
+     Jessie has no comma / sequence expression, so only a singleton is
+     meaningful; jesc_parse.v rejects this during validation. *)
+  | JBadExpr
   with jprop :=
   | JProp (name : string) (value : jexpr)
   with jbody :=

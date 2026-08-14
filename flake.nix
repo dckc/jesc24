@@ -15,6 +15,7 @@
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
             coq_8_9
+            ocamlPackages.menhir
             python3
             gnumake
             gcc
