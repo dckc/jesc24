@@ -30,16 +30,24 @@ Relevant broader escrow renditions already in-tree:
 
 ## Directory Layers
 
-1. Jessie notation and PEG-backed parser path
+1. Jessie notation and Menhir-backed parser path
 - `jessie_notation.v`: Jessie-flavored object/string/update notation on top of
   HeapLang values
-- `vendor/peg-coq/theories/`: minimal vendored `peg-coq` slice needed by the current parser, kept in the upstream-style `Peg` namespace so the copied theories can stay close to verbatim
-- local delta from upstream is intended to stay minimal and explicit; at present the main adaptation is the Coq 8.9 compatibility patch in `vendor/peg-coq/theories/Match.v`
+- `vendor/menhirlib/`: vendored `coq-menhirlib` (Menhir 20250903), kept in the
+  upstream-style `MenhirLib` namespace; see `vendor/menhirlib/README.md`
+- `jesc_parser.vy`: the Jessie/Justin grammar, transcribed from the upstream
+  quasi-jessie / quasi-justin grammar, compiled to Coq by `menhir --coq`
+- `jesc_lexer.v`: hand-written Justin-style lexer (comments, strings, numbers,
+  keywords) producing the MenhirLib token buffer
+- `jesc_parse.v`: `parse_jessie_str` / `parse_justin_str`, the top-level
+  entrance to the parser used by the proof line
+- `json_parser.vy` / `json_lexer.v`: the narrower JSON subset grammar and lexer
+  (mirroring upstream quasi-json)
 - `jessica_ast.v`
 - `jessica_to_hla.v`: current partial `JessicaAst -> HeapLang AST` lowering, broad enough for the `makeCounter` path
-- `quasi_json.v`
-- `quasi_justin.v`
-- `quasi_jessie.v`
+- `jesc_test.v` / `json_test.v`: tests mirroring the upstream test-jessie /
+  test-justin / test-json suites, including the makeCounter / checkedCounter /
+  escrow2013 integration cases
 
 2. Source generation
 - `sources/makeCounter.js`
@@ -65,8 +73,8 @@ Relevant broader escrow renditions already in-tree:
 - `checked_counter_safe`: robust safety for the proof-oriented client term.
 - `checked_counter_from_source_safe`: robust safety for the source-linked
   lowered checked-client shape.
-- `parse_escrow2013_source_program`: exact-source PEG recognition for the
-  `escrow2013` source against `escrow2013_program`.
+- `parse_escrow2013_source_program`: the `escrow2013` source parses through
+  `parse_jessie_str` to `escrow2013_program`.
 
 ## Remaining Gaps
 
@@ -79,15 +87,22 @@ Relevant broader escrow renditions already in-tree:
 - `jessica_to_hla.v` is intentionally partial. It covers the current
   `makeCounter` fragment but does not yet cover constructs such as `JIf` that
   appear in `escrow2013`.
-- `escrow2013` uses exact-source PEG recognition through `exact_module_source`;
-  it is not parsed by the structured Jessie grammar.
+- The Menhir grammar is a transcription of the same upstream Jessie grammar
+  fragments as the earlier PEG parser; it does not (yet) cover the full Jessie
+  surface grammar.
 - `JThrow` needs semantics appropriate for `escrow2013` and promise behavior;
   treating it as simple stuckness would be misleading.
 
 ## Build
 
-- Use the same switch the OCPL proof line uses:
-  `eval "$(opam env --switch=ocpl-coq-8.9.1-ocaml-4.07.1)"`
-- Then build from `packages/zoe/spec/_research/ocpl-coq/` with `make`.
-- The top-level `Makefile` generates `theories/jessie/*_js.v` before running `coq_makefile`.
-- `_CoqProject` lists those generated modules directly, so a clean checkout should start from top-level `make`, not from a direct `coq_makefile -f _CoqProject` or single-file `coqc` invocation.
+- Use the same OCPL proof line:
+  `nix develop --command make -j"$(nproc)"`
+- The top-level `Makefile` generates `theories/jessie/*_js.v` and the Menhir
+  parsers (`jesc_parser.v`, `json_parser.v` from the `.vy` grammars) before
+  running `coq_makefile`.
+- `menhir` comes from the `nix develop` shell; the Coq `MenhirLib` library it
+  generates against is the vendored `vendor/menhirlib`, so the parser is
+  regenerated with the same Menhir version (20250903) as the library.
+- `_CoqProject` lists the generated modules directly, so a clean checkout should
+  start from top-level `make`, not from a direct `coq_makefile -f _CoqProject`
+  or single-file `coqc` invocation.

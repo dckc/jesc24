@@ -6,3 +6,11 @@
 .coqdeps.d
 Makefile.coq
 Makefile.coq.conf
+*.crashcoqide
+theories/jessie/docs/_build/
+theories/jessie/*_js.v
+theories/jessie/json_parser.v
+theories/jessie/jesc_parser.v
+*.vok
+*.vos
+/ci-history/

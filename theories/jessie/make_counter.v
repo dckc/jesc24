@@ -1,10 +1,9 @@
 From iris.heap_lang Require Import heap adequacy.
 From iris.proofmode Require Import tactics.
 From iris.heap_lang Require Import proofmode notation.
-From Peg Require Import Match.
 From jessie Require Import makeCounter_js.
 From jessie Require Import jessie_notation.
-From jessie Require Import jessica_ast jessica_to_hla quasi_jessie.
+From jessie Require Import jessica_ast jessica_to_hla jesc_parse.
 Import uPred.
 
 (** * Upward-capability counter client *)
@@ -19,7 +18,7 @@ Definition checkedCounter_source : string :=
   return { _fst: use, _snd: cUp };
 };".
 
-Module PegMakeCounter.
+Module SourceMakeCounter.
   Import JessicaAst.
 
   Definition makeCounter_jessica_fn : jexpr :=
@@ -38,7 +37,7 @@ Module PegMakeCounter.
     JModule [JConst [JBind (JDef "makeCounter") makeCounter_jessica_fn]].
 
   Example parse_makeCounter_source_program :
-    QuasiJessie.parse_program_only makeCounter_source =
+    parse_jessie_str makeCounter_source =
       Some makeCounter_jessica_program.
   Proof. vm_compute. reflexivity. Qed.
 
@@ -61,10 +60,10 @@ Module PegMakeCounter.
     JModule [JConst [JBind (JDef "checkedCounter") checkedCounter_jessica_fn]].
 
   Example parse_checkedCounter_source_program :
-    QuasiJessie.parse_program_only checkedCounter_source =
+    parse_jessie_str checkedCounter_source =
       Some checkedCounter_jessica_program.
   Proof. vm_compute. reflexivity. Qed.
-End PegMakeCounter.
+End SourceMakeCounter.
 
 Definition make_counter : val :=
   λ: <>,
@@ -87,12 +86,12 @@ Lemma make_counter_expr_of_val :
 Proof. solve_of_val_unlock. Qed.
 
 Lemma jessica_to_hla_makeCounter_fn :
-  JessicaToHla.jessica_expr_to_hla [] PegMakeCounter.makeCounter_jessica_fn =
+  JessicaToHla.jessica_expr_to_hla [] SourceMakeCounter.makeCounter_jessica_fn =
     Some make_counter_expr.
 Proof. vm_compute. reflexivity. Qed.
 
 Lemma jessica_to_hla_makeCounter_is_make_counter_binding :
-  JessicaToHla.jessica_to_hla_module PegMakeCounter.makeCounter_jessica_program =
+  JessicaToHla.jessica_to_hla_module SourceMakeCounter.makeCounter_jessica_program =
     Some (let: "makeCounter" := make_counter_expr in ())%E.
 Proof. vm_compute. reflexivity. Qed.
 
@@ -111,12 +110,12 @@ Definition checkedCounter_lowered_expr : expr :=
     source-linked theorem uses the same lowered client shape with [makeCounter]
     linked to [make_counter]. *)
 Lemma jessica_to_hla_checkedCounter_fn :
-  JessicaToHla.jessica_expr_to_hla [] PegMakeCounter.checkedCounter_jessica_fn =
+  JessicaToHla.jessica_expr_to_hla [] SourceMakeCounter.checkedCounter_jessica_fn =
     Some checkedCounter_lowered_expr.
 Proof. vm_compute. reflexivity. Qed.
 
 Lemma jessica_to_hla_checkedCounter_program :
-  JessicaToHla.jessica_to_hla_module PegMakeCounter.checkedCounter_jessica_program =
+  JessicaToHla.jessica_to_hla_module SourceMakeCounter.checkedCounter_jessica_program =
     Some (let: "checkedCounter" := checkedCounter_lowered_expr in ())%E.
 Proof. vm_compute. reflexivity. Qed.
 
