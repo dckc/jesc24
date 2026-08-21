@@ -21,6 +21,7 @@ Module JessicaAst.
   | JBadPat
   with jexpr :=
   | JUse (x : string)
+  | JThis
   | JDataNum (n : Z)
   | JDataBigint (n : Z)
   | JDataString (s : string)

@@ -67,7 +67,7 @@ Definition paren_singleton (es : list JessicaAst.jexpr) : JessicaAst.jexpr :=
 %token COMMA COLON DOT SEMI
 %token EQUALS ARROW PLUSEQ MINUSEQ BANG LT
 %token CONST LET IFKW ELSE RETURN THROW ASSERT IMPORT FROM
-%token VOID
+%token VOID THIS
 %token<Z> NUMBER
 %token<Z> BIGINT
 %token<string> IDENT STRING
@@ -235,6 +235,7 @@ atom :
 | NUMBER     { JessicaAst.JDataNum $1 }
 | BIGINT     { JessicaAst.JDataBigint $1 }
 | IDENT      { JessicaAst.JUse $1 }
+| THIS       { JessicaAst.JThis }
 
 paren_expr : LPAREN args RPAREN { paren_singleton $2 }
 

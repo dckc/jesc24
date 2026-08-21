@@ -36,8 +36,9 @@ Module JessicaToHla.
   with jessica_prop_to_hla (env : list string) (p : jprop) : option (string * heap_lang.expr)
   with jessica_body_to_hla (env : list string) (body : jbody) : option heap_lang.expr.
   Proof.
-    - destruct e as [x|n|bn|s|xs|op lhs rhs|lhs rhs|obj field|callee args|lhs rhs|op arg|fields|params body|params body|bad].
+    - destruct e as [x|_|n|bn|s|xs|op lhs rhs|lhs rhs|obj field|callee args|lhs rhs|op arg|fields|params body|params body|_].
       + exact (Some (Var x)).
+      + exact None.
       + exact (Some (Lit (LitInt n))).
       + exact (Some (Lit (LitInt bn))).
       + exact (Some (of_val (j_string s))).

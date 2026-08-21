@@ -122,6 +122,7 @@ Definition tok_of_ident (s : string) : token :=
   if String.eqb s "import" then IMPORT tt else
   if String.eqb s "from" then FROM tt else
   if String.eqb s "void" then VOID tt else
+  if String.eqb s "this" then THIS tt else
   IDENT s.
 
 Fixpoint lex_string_cpt (fuel : nat) (s : string) : option buffer :=

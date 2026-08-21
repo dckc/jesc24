@@ -28,6 +28,7 @@ Fixpoint valid_pat (p : JessicaAst.jpat) : bool :=
 with valid_expr (e : JessicaAst.jexpr) : bool :=
   match e with
   | JessicaAst.JUse _ => true
+  | JessicaAst.JThis => true
   | JessicaAst.JDataNum _ => true
   | JessicaAst.JDataBigint _ => true
   | JessicaAst.JDataString _ => true

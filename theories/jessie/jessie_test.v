@@ -133,7 +133,12 @@ Module JessieTests.
       Some (JModule [JConst [JBind (JDef "f")
         (JArrow [] (JBodyBlock
           [JExprStmt (JAssignOp "+="
-            (JGet (JGet (JUse "this") "state") "count")
+            (JGet (JGet JThis "state") "count")
             (JDataBigint 1))]))]]).
+  Proof. vm_compute. reflexivity. Qed.
+
+  Example test_this_keyword :
+    parse_jessie_str "const x = this.state;" =
+      Some (JModule [JConst [JBind (JDef "x") (JGet JThis "state")]]).
   Proof. vm_compute. reflexivity. Qed.
 End JessieTests.
