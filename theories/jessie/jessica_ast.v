@@ -14,7 +14,7 @@ Module JessicaAst.
   | JMatchObj (names : list string)
   | JDefDefault (x : string) (default : jexpr)
   (* Cover-grammar placeholder: a parenthesized arrow-parameter list whose
-     contents are not valid patterns (e.g. [(a) => {}]).  The parser may
+     contents are not valid patterns (e.g. [(1) => {}]).  The parser may
      produce it while parsing the permissive cover grammar; jesc_parse.v
      rejects it during the "must cover an ArrowFormalParameters" check that
      mirrors ECMAScript's early-error rule. *)
