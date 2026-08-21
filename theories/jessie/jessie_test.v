@@ -9,7 +9,7 @@
 From Coq Require Import List String ZArith Ascii.
 From Coq Require Import Lists.List.
 From jessie Require Import jessica_ast jesc_parser jesc_lexer jesc_parse.
-From jessie Require Import makeCounter_js escrow2013_js escrow2013_target make_counter.
+From jessie Require Import makeCounter_js makeCounterZone_js escrow2013_js escrow2013_target make_counter.
 Import MenhirLibParser.Inter.
 Import ListNotations.
 Open Scope char_scope.
@@ -84,5 +84,56 @@ Module JessieTests.
 
   Example test_jessie_rejects_return_at_top :
     parse_jessie_str "return 1;" = None.
+  Proof. vm_compute. reflexivity. Qed.
+
+  (* Integration: the menhir parser recognizes makeCounterZone.js. *)
+
+  Example test_jessie_makeCounterZone :
+    parse_jessie_str makeCounterZone_source <> None.
+  Proof. vm_compute. discriminate. Qed.
+
+  (* Unit tests for the constructs makeCounterZone introduces over the
+     makeCounter / escrow2013 subset: BigInt literals, object destructuring,
+     top-level statements, method shorthand, default arrow parameters, and
+     member-assignment.  Each was extracted red-first from the source, then
+     the grammar/lexer were extended to make it green. *)
+
+  Example test_bigint_literal :
+    parse_jessie_str "const x = 0n;" =
+      Some (JModule [JConst [JBind (JDef "x") (JDataBigint 0)]]).
+  Proof. vm_compute. reflexivity. Qed.
+
+  Example test_destructuring :
+    parse_jessie_str "const { a, b } = f();" =
+      Some (JModule [JConst [JBind (JMatchObj ["a"; "b"])
+            (JCall (JUse "f") [])]]).
+  Proof. vm_compute. reflexivity. Qed.
+
+  Example test_top_level_void :
+    parse_jessie_str "void downCounter;" =
+      Some (JModule [JStmt (JExprStmt (JPreOp "void" (JUse "downCounter")))]).
+  Proof. vm_compute. reflexivity. Qed.
+
+  Example test_method_shorthand :
+    parse_jessie_str "const o = { incr() { return 1; } };" =
+      Some (JModule [JConst [JBind (JDef "o")
+        (JRecord [JProp "incr"
+          (JArrow [] (JBodyBlock [JReturn (JDataNum 1)]))])]]).
+  Proof. vm_compute. reflexivity. Qed.
+
+  Example test_default_param :
+    parse_jessie_str "const f = (zone, label = 'Counter') => zone;" =
+      Some (JModule [JConst [JBind (JDef "f")
+        (JArrow [JDef "zone"; JDefDefault "label" (JDataString "Counter")]
+          (JBodyExpr (JUse "zone")))]]).
+  Proof. vm_compute. reflexivity. Qed.
+
+  Example test_member_assign :
+    parse_jessie_str "const f = () => { this.state.count += 1n; };" =
+      Some (JModule [JConst [JBind (JDef "f")
+        (JArrow [] (JBodyBlock
+          [JExprStmt (JAssignOp "+="
+            (JGet (JGet (JUse "this") "state") "count")
+            (JDataBigint 1))]))]]).
   Proof. vm_compute. reflexivity. Qed.
 End JessieTests.

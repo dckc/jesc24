@@ -16,6 +16,17 @@ Note `make` rules to
 start from top-level `make`, not from a direct `coq_makefile -f _CoqProject`
 or single-file `coqc` invocation.
 
+## Parser unit tests
+
+Parser "unit tests" are written as `Example`s in
+`theories/jessie/jessie_test.v` (Jessie modules), `justin_test.v` (expressions),
+and `json_test.v` (JSON). When extending the grammar in `jesc_parser.vy` or the
+lexer in `jesc_lexer.v`, add a small red `Example` for the new construct first,
+then make it green by extending the grammar/lexer. See the makeCounterZone
+tests (`test_bigint_literal`, `test_destructuring`, `test_top_level_void`,
+`test_method_shorthand`, `test_default_param`, `test_member_assign`) as the
+template.
+
 ## Commit Discipline
 
 Use git commit messages as the running lab notebook.

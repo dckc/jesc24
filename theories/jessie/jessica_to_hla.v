@@ -36,9 +36,10 @@ Module JessicaToHla.
   with jessica_prop_to_hla (env : list string) (p : jprop) : option (string * heap_lang.expr)
   with jessica_body_to_hla (env : list string) (body : jbody) : option heap_lang.expr.
   Proof.
-    - destruct e as [x|n|s|xs|op lhs rhs|lhs rhs|obj field|callee args|lhs rhs|op arg|fields|params body|params body|bad].
+    - destruct e as [x|n|bn|s|xs|op lhs rhs|lhs rhs|obj field|callee args|lhs rhs|op arg|fields|params body|params body|bad].
       + exact (Some (Var x)).
       + exact (Some (Lit (LitInt n))).
+      + exact (Some (Lit (LitInt bn))).
       + exact (Some (of_val (j_string s))).
       + exact (
           match option_all (map (jessica_expr_to_hla env) xs) with
@@ -46,8 +47,8 @@ Module JessicaToHla.
           | None => None
           end).
       + exact (
-          match op_of_string op, lhs, jessica_expr_to_hla env rhs with
-          | Some bop, JUse x, Some rhs1 => Some (op_assign bop (Var x) rhs1)
+          match op_of_string op, jessica_expr_to_hla env lhs, jessica_expr_to_hla env rhs with
+          | Some bop, Some lhs1, Some rhs1 => Some (op_assign bop lhs1 rhs1)
           | _, _, _ => None
           end).
       + exact (
@@ -197,6 +198,7 @@ Module JessicaToHla.
     match ds with
     | [] => Some Unit
     | JImport _ _ :: _ => None
+    | JStmt _ :: _ => None
     | JConst bs :: ds' =>
         let fix compile_bindings (env0 : list string) (bs0 : list jbind)
             (k : list string -> option heap_lang.expr) {struct bs0}

@@ -3,8 +3,8 @@
 COQ_MAKEFILE := coq_makefile
 REDIR := $(MAKE) -f Makefile.coq
 JS_TO_COQ := theories/jessie/tools/js_to_coq_source.py
-JS_SOURCES := theories/jessie/sources/makeCounter.js theories/jessie/sources/escrow2013.js
-GENERATED_JS_V := theories/jessie/makeCounter_js.v theories/jessie/escrow2013_js.v
+JS_SOURCES := theories/jessie/sources/makeCounter.js theories/jessie/sources/makeCounterExo.js theories/jessie/sources/makeCounterZone.js theories/jessie/sources/escrow2013.js
+GENERATED_JS_V := theories/jessie/makeCounter_js.v theories/jessie/makeCounterExo_js.v theories/jessie/makeCounterZone_js.v theories/jessie/escrow2013_js.v
 MENHIR_VY := theories/jessie/json_parser.vy theories/jessie/jesc_parser.vy
 GENERATED_MENHIR_V := theories/jessie/json_parser.v theories/jessie/jesc_parser.v
 MENHIR_FLAGS := --coq --coq-no-version-check

@@ -43,6 +43,8 @@ Fixpoint param_of_expr (e : JessicaAst.jexpr) : JessicaAst.jpat :=
   | JessicaAst.JUse x => JessicaAst.JDef x
   | JessicaAst.JArray es =>
       JessicaAst.JMatchArray (map param_of_expr es)
+  | JessicaAst.JAssign (JessicaAst.JUse x) default =>
+      JessicaAst.JDefDefault x default
   | _ => JessicaAst.JBadPat
   end.
 
@@ -65,7 +67,9 @@ Definition paren_singleton (es : list JessicaAst.jexpr) : JessicaAst.jexpr :=
 %token COMMA COLON DOT SEMI
 %token EQUALS ARROW PLUSEQ MINUSEQ BANG LT
 %token CONST LET IFKW ELSE RETURN THROW ASSERT IMPORT FROM
+%token VOID
 %token<Z> NUMBER
+%token<Z> BIGINT
 %token<string> IDENT STRING
 %token EOF
 
@@ -88,10 +92,12 @@ Definition paren_singleton (es : list JessicaAst.jexpr) : JessicaAst.jexpr :=
 %type<list JessicaAst.jexpr> args
 %type<list JessicaAst.jprop> props
 %type<JessicaAst.jprop> propDef
+%type<list string> names
 %type<JessicaAst.jbody> arrow_body
 
 (* A.3 Statements *)
 %type<JessicaAst.jstmt> stmt
+%type<JessicaAst.jstmt> decl_stmt
 %type<JessicaAst.jstmt> if_stmt
 %type<JessicaAst.jstmt> const_stmt
 %type<JessicaAst.jstmt> let_stmt
@@ -129,11 +135,29 @@ decls :
   /* empty */           { [] }
 | decl decls            { $1 :: $2 }
 
+names :
+  /* empty */           { [] }
+| IDENT                 { [ $1 ] }
+| names COMMA IDENT     { $3 :: $1 }
+
 decl :
   CONST IDENT EQUALS expr SEMI
     { JessicaAst.JConst [JessicaAst.JBind (JessicaAst.JDef $2) $4] }
+| CONST LBRACE names RBRACE EQUALS expr SEMI
+    { JessicaAst.JConst [JessicaAst.JBind (JessicaAst.JMatchObj (rev $3)) $6] }
 | IMPORT LBRACE IDENT RBRACE FROM STRING SEMI
     { JessicaAst.JImport [JessicaAst.JImportAs $3 $3] $6 }
+| decl_stmt
+    { JessicaAst.JStmt $1 }
+
+(* Top-level statements other than const/let declarations (which are parsed as
+   [JConst] decls above).  These mirror the statement subset the module
+   grammar accepts so far.  [return] is excluded: a top-level return is an
+   early error in ECMAScript. *)
+decl_stmt :
+  throw_stmt       { $1 }
+| assert_stmt      { $1 }
+| expr_stmt        { $1 }
 
 (*** A.2 Expressions *)
 
@@ -145,14 +169,16 @@ expr :
   arrow_func                    { $1 }
 | IDENT EQUALS expr
     { JessicaAst.JAssign (JessicaAst.JUse $1) $3 }
-| IDENT PLUSEQ expr
-    { JessicaAst.JAssignOp "+=" (JessicaAst.JUse $1) $3 }
-| IDENT MINUSEQ expr
-    { JessicaAst.JAssignOp "-=" (JessicaAst.JUse $1) $3 }
+| post PLUSEQ expr
+    { JessicaAst.JAssignOp "+=" $1 $3 }
+| post MINUSEQ expr
+    { JessicaAst.JAssignOp "-=" $1 $3 }
 | post LT post
     { JessicaAst.JGreater $3 $1 }
 | BANG expr
     { JessicaAst.JPreOp "!" $2 }
+| VOID post
+    { JessicaAst.JPreOp "void" $2 }
 | post                       { $1 }
 
 (* arrowFunc <- arrowParams _NO_NEWLINE ARROW block
@@ -180,14 +206,16 @@ expr_body :
   arrow_func                    { $1 }
 | IDENT EQUALS expr
     { JessicaAst.JAssign (JessicaAst.JUse $1) $3 }
-| IDENT PLUSEQ expr
-    { JessicaAst.JAssignOp "+=" (JessicaAst.JUse $1) $3 }
-| IDENT MINUSEQ expr
-    { JessicaAst.JAssignOp "-=" (JessicaAst.JUse $1) $3 }
+| post_nocollision PLUSEQ expr
+    { JessicaAst.JAssignOp "+=" $1 $3 }
+| post_nocollision MINUSEQ expr
+    { JessicaAst.JAssignOp "-=" $1 $3 }
 | post_nocollision LT post
     { JessicaAst.JGreater $3 $1 }
 | BANG expr
     { JessicaAst.JPreOp "!" $2 }
+| VOID post_nocollision
+    { JessicaAst.JPreOp "void" $2 }
 | post_nocollision           { $1 }
 
 (* primaryExpr <- super.primaryExpr / quasiExpr / LEFT_PAREN expr RIGHT_PAREN
@@ -205,6 +233,7 @@ primary_nocollision :
 atom :
   STRING     { JessicaAst.JDataString $1 }
 | NUMBER     { JessicaAst.JDataNum $1 }
+| BIGINT     { JessicaAst.JDataBigint $1 }
 | IDENT      { JessicaAst.JUse $1 }
 
 paren_expr : LPAREN args RPAREN { paren_singleton $2 }
@@ -258,6 +287,8 @@ props :
     a number-to-string helper would be needed to re-add them) *)
 propDef :
   IDENT COLON expr     { JessicaAst.JProp $1 $3 }
+| IDENT LPAREN args RPAREN block
+    { JessicaAst.JProp $1 (JessicaAst.JArrow (params_of_exprs $3) (JessicaAst.JBodyBlock $5)) }
 
 (*** A.3 Statements *)
 

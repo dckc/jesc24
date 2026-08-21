@@ -5,22 +5,24 @@ Open Scope string_scope.
 Open Scope Z_scope.
 
 Module JessicaAst.
-  Inductive jpat :=
-  | JDef (x : string)
-  | JMatchArray (ps : list jpat)
-  (* Cover-grammar placeholder: a parenthesized arrow-parameter list whose
-     contents are not valid patterns (e.g. [(1) => {}]).  The parser may
-     produce it while parsing the permissive cover grammar; jesc_parse.v
-     rejects it during the "must cover an ArrowFormalParameters" check that
-     mirrors ECMA-262's early-error rule. *)
-  | JBadPat.
-
   Inductive jimport_bind :=
   | JImportAs (local imported : string).
 
-  Inductive jexpr :=
+  Inductive jpat :=
+  | JDef (x : string)
+  | JMatchArray (ps : list jpat)
+  | JMatchObj (names : list string)
+  | JDefDefault (x : string) (default : jexpr)
+  (* Cover-grammar placeholder: a parenthesized arrow-parameter list whose
+     contents are not valid patterns (e.g. [(a) => {}]).  The parser may
+     produce it while parsing the permissive cover grammar; jesc_parse.v
+     rejects it during the "must cover an ArrowFormalParameters" check that
+     mirrors ECMAScript's early-error rule. *)
+  | JBadPat
+  with jexpr :=
   | JUse (x : string)
   | JDataNum (n : Z)
+  | JDataBigint (n : Z)
   | JDataString (s : string)
   | JArray (xs : list jexpr)
   (* TODO: consider whether the lhs of JAssignOp should be a narrower pattern
@@ -41,6 +43,9 @@ Module JessicaAst.
   | JBadExpr
   with jprop :=
   | JProp (name : string) (value : jexpr)
+  (* TODO: consider a distinct AST node for method shorthand (incr() { ... })
+     since the resulting arrow body is this-ful, unlike a plain property whose
+     value is an ordinary expression. *)
   with jbody :=
   | JBodyExpr (e : jexpr)
   | JBodyBlock (ss : list jstmt)
@@ -58,7 +63,8 @@ Module JessicaAst.
 
   Inductive jdecl :=
   | JImport (bindings : list jimport_bind) (from : string)
-  | JConst (bindings : list jbind).
+  | JConst (bindings : list jbind)
+  | JStmt (s : jstmt).
 
   Inductive jmodule :=
   | JModule (decls : list jdecl).

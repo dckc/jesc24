@@ -20,13 +20,16 @@ Fixpoint valid_pat (p : JessicaAst.jpat) : bool :=
   match p with
   | JessicaAst.JDef _ => true
   | JessicaAst.JMatchArray ps => forallb valid_pat ps
+  | JessicaAst.JMatchObj _ => true
+  | JessicaAst.JDefDefault _ default => valid_expr default
   | JessicaAst.JBadPat => false
-  end.
+  end
 
-Fixpoint valid_expr (e : JessicaAst.jexpr) : bool :=
+with valid_expr (e : JessicaAst.jexpr) : bool :=
   match e with
   | JessicaAst.JUse _ => true
   | JessicaAst.JDataNum _ => true
+  | JessicaAst.JDataBigint _ => true
   | JessicaAst.JDataString _ => true
   | JessicaAst.JArray xs => forallb valid_expr xs
   | JessicaAst.JAssignOp _ l r => valid_expr l && valid_expr r
@@ -78,6 +81,7 @@ Fixpoint valid_decl (d : JessicaAst.jdecl) : bool :=
   match d with
   | JessicaAst.JImport _ _ => true
   | JessicaAst.JConst bs => forallb valid_bind bs
+  | JessicaAst.JStmt s => valid_stmt s
   end.
 
 Definition valid_module (m : JessicaAst.jmodule) : bool :=

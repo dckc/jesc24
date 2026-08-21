@@ -83,7 +83,8 @@ Definition readstring (q : ascii) (s : string) : option (string * string) :=
 (* NUMBER <- < int frac? exp? > _WSN;  (quasi-json.js)
    int <- [1-9] digits / digit / MINUS [1-9] digits / MINUS digit;
    digits <- digit*;  frac <- '.' digits;  exp <- [Ee] [+\-]? digits;
-   Only non-negative integers are transcribed here. *)
+   Only non-negative integers are transcribed here.
+   A following ""n"" turns the literal into a BigInt (BIGINT token). *)
 Fixpoint readnum (acc : Z) (s : string) : (Z * string) :=
   match s with
   | String "0" s => readnum (acc*10) s
@@ -120,6 +121,7 @@ Definition tok_of_ident (s : string) : token :=
   if String.eqb s "assert" then ASSERT tt else
   if String.eqb s "import" then IMPORT tt else
   if String.eqb s "from" then FROM tt else
+  if String.eqb s "void" then VOID tt else
   IDENT s.
 
 Fixpoint lex_string_cpt (fuel : nat) (s : string) : option buffer :=
@@ -196,7 +198,12 @@ Fixpoint lex_string_cpt (fuel : nat) (s : string) : option buffer :=
       | _ =>
         if is_digit c then
           let (m, rest) := readnum 0 s in
-          option_map (Buf_cons (NUMBER m)) (lex_string_cpt fuel' rest)
+          match rest with
+          | String "n"%char tail =>
+            option_map (Buf_cons (BIGINT m)) (lex_string_cpt fuel' tail)
+          | _ =>
+            option_map (Buf_cons (NUMBER m)) (lex_string_cpt fuel' rest)
+          end
         else if is_ident_start c then
           let (str, rest) := readident EmptyString s in
           option_map (Buf_cons (tok_of_ident str)) (lex_string_cpt fuel' rest)
